@@ -1,0 +1,110 @@
+
+<!-- templates/index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Catalog</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Book Catalog</h2>
+
+<form id="bookForm">
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" required>
+    <label for="author">Author:</label>
+    <input type="text" id="author" name="author" required>
+    <button type="button" onclick="createBook()">Add Book</button>
+</form>
+
+<table id="bookTable">
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Action</th>
+    </tr>
+</table>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        loadBooks();
+    });
+
+    function loadBooks() {
+        fetch('/api/books')
+            .then(response => response.json())
+            .then(data => {
+                const table = document.getElementById('bookTable');
+                // Clear existing rows
+                table.innerHTML = "<tr><th>ID</th><th>Title</th><th>Author</th><th>Action</th></tr>";
+                data.books.forEach(book => {
+                    const row = table.insertRow(-1);
+                    row.insertCell(0).textContent = book.id;
+                    row.insertCell(1).textContent = book.title;
+                    row.insertCell(2).textContent = book.author;
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.addEventListener('click', function () {
+                        deleteBook(book.id);
+                    });
+                    row.insertCell(3).appendChild(deleteButton);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function createBook() {
+        const title = document.getElementById('title').value;
+        const author = document.getElementById('author').value;
+        fetch('/api/books', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title, author }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                loadBooks();
+                // Clear the form
+                document.getElementById('title').value = '';
+                document.getElementById('author').value = '';
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function deleteBook(bookId) {
+        fetch(`/api/books/${bookId}`, {
+            method: 'DELETE',
+        })
+            .then(response => response.json())
+            .then(data => {
+                loadBooks();
+            })
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+
+</body>
+</html>
