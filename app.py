@@ -62,12 +62,14 @@ def get_book(book_id):
 @app.route('/api/books', methods=['POST'])
 def create_book():
     data = request.get_json()
+    author = Author(name=data['author'])
 
-    new_book = Book(title=data['title'], author=data['author'])
+
+    new_book = Book(title=data['title'], author=author)
     db.session.add(new_book)
     db.session.commit()
 
-    return jsonify({'id': new_book.id, 'title': new_book.title, 'author': new_book.author}), 201
+    return jsonify({'id': new_book.id, 'title': new_book.title, 'author': new_book.author.name}), 201
 
 @app.route('/api/books/<int:book_id>', methods=['PUT'])
 def update_book(book_id):
